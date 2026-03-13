@@ -1,0 +1,17 @@
+{
+  "name": "sql-flex-query-demo",
+  "version": "1.0.0",
+  "description": "A demo application showcasing sql-flex-query capabilities with REST API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "demo": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "sql-flex-query": "^1.0.3",
+    "sqlite3": "^6.0.1"
+  }
+}
