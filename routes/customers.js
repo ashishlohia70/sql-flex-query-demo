@@ -2,14 +2,11 @@ const express = require('express');
 const router = express.Router();
 const customerService = require('../services/customerService');
 
-// GET /api/customers - List all customers with pagination and filtering
-router.get('/', async (req, res, next) => {
+// POST /api/customers/search - List all customers with flexible query configuration
+router.post('/search', async (req, res, next) => {
   try {
-    const { page = 1, size = 10, status, name, email, sortBy, sortDir } = req.query;
-    
-    const filters = { status, name, email, sortBy, sortDir };
-    
-    const result = await customerService.getCustomers(filters, page, size);
+    const queryConfig = req.body;
+    const result = await customerService.getCustomers(queryConfig);
     
     res.json({
       success: true,

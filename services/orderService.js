@@ -1,12 +1,13 @@
-const { buildQueries, QueryBuilder, dialectHelpers } = require('sql-flex-query');
-const db = require('../config/database');
+const { buildQueries, dialectHelpers } = require('sql-flex-query');
+const db = require('../config/databaseHelper');
+const config = require('../config/appConfig');
 
 class OrderService {
   constructor() {
-    this.dialect = 'sqlite';
+    this.dialect = config.dialect;
   }
 
-  async getOrders(filters = {}, page = 1, size = 10) {
+  async getOrders(queryConfig = {}) {
     const BASE = `
       SELECT /*SELECT_COLUMNS*/
       FROM orders o
@@ -16,36 +17,9 @@ class OrderService {
       /*LIMIT_CLAUSE*/
     `;
 
-    const whereParams = [];
-    
-    // Build WHERE conditions from filters
-    if (filters.status) {
-      whereParams.push({ key: 'o.status', operation: 'EQ', value: filters.status });
-    }
-    if (filters.customerId) {
-      whereParams.push({ key: 'o.customer_id', operation: 'EQ', value: parseInt(filters.customerId) });
-    }
-    if (filters.minDate) {
-      whereParams.push({ key: 'o.order_date', operation: 'GTE', value: filters.minDate });
-    }
-    if (filters.maxDate) {
-      whereParams.push({ key: 'o.order_date', operation: 'LTE', value: filters.maxDate });
-    }
-
-    const columnMapper = {
-      orderId: 'o.id',
-      orderDate: 'o.order_date',
-      orderStatus: 'o.status',
-      totalAmount: 'o.total_amount',
-      customerId: 'c.id',
-      customerName: 'c.name',
-      customerEmail: 'c.email'
-    };
-
-    const result = buildQueries({
-      baseQueryTemplate: BASE,
-      columnMapper,
-      selectColumns: [
+    // Use client-provided configuration with defaults
+    const {
+      selectColumns = [
         'orderId',
         'orderDate',
         'orderStatus',
@@ -54,16 +28,36 @@ class OrderService {
         'customerName',
         'customerEmail'
       ],
+      whereParams = [],
+      textSearchParams = [],
+      sortBy = [{ key: 'o.id', direction: 'DESC' }],
+      page = 1,
+      size = 10,
+      columnMapper = {
+        orderId: 'o.id',
+        orderDate: 'o.order_date',
+        orderStatus: 'o.status',
+        totalAmount: 'o.total_amount',
+        customerId: 'c.id',
+        customerName: 'c.name',
+        customerEmail: 'c.email'
+      }
+    } = queryConfig;
+
+    const result = buildQueries({
+      baseQueryTemplate: BASE,
+      columnMapper,
+      selectColumns,
       whereParams,
-      textSearchParams: [],
-      sortBy: filters.sortBy ? [{ key: filters.sortBy, direction: filters.sortDir || 'ASC' }] : [{ key: 'o.id', direction: 'DESC' }],
+      textSearchParams,
+      sortBy,
       page: parseInt(page),
       size: parseInt(size),
       dialect: this.dialect
     });
 
-    const [rows] = await db.getDb().all(result.searchQuery, result.params);
-    const [countResult] = await db.getDb().get(result.countQuery, result.params);
+    const rows = await db.all(result.searchQuery, result.params);
+    const countResult = await db.get(result.countQuery, result.params);
     
     return {
       data: rows,
@@ -89,7 +83,7 @@ class OrderService {
       WHERE o.id = ?
     `;
     
-    return await db.getDb().get(query, [id]);
+    return await db.get(query, [id]);
   }
 
   async getOrderWithItems(id) {
@@ -116,7 +110,7 @@ class OrderService {
       ORDER BY oi.id
     `;
     
-    const rows = await db.getDb().all(query, [id]);
+    const rows = await db.all(query, [id]);
     
     if (rows.length === 0) return null;
     
@@ -163,7 +157,7 @@ class OrderService {
     const query = `INSERT INTO orders (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
     
     return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
+      db.run(query, params, function(err) {
         if (err) {
           reject(err);
         } else {
@@ -189,7 +183,7 @@ class OrderService {
     const query = `UPDATE orders SET ${setClause}${clause}`;
     
     return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
+      db.run(query, params, function(err) {
         if (err) {
           reject(err);
         } else {
@@ -212,7 +206,7 @@ class OrderService {
     const query = `DELETE FROM orders${clause}`;
     
     return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
+      db.run(query, params, function(err) {
         if (err) {
           reject(err);
         } else {
@@ -243,7 +237,7 @@ class OrderService {
     const query = `INSERT INTO order_items (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
     
     return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
+      db.run(query, params, function(err) {
         if (err) {
           reject(err);
         } else {
@@ -269,7 +263,7 @@ class OrderService {
       ORDER BY oi.id
     `;
     
-    return await db.getDb().all(query, [orderId]);
+    return await db.all(query, [orderId]);
   }
 }
 

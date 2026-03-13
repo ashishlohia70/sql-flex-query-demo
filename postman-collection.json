@@ -27,21 +27,23 @@
         {
           "name": "List Customers",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"selectColumns\": [\"id\", \"name\", \"email\", \"status\", \"created_at\"],\n  \"whereParams\": [\n    {\"key\": \"status\", \"operation\": \"EQ\", \"value\": \"ACTIVE\"}\n  ],\n  \"textSearchParams\": [],\n  \"sortBy\": [{\"key\": \"name\", \"direction\": \"ASC\"}],\n  \"page\": 1,\n  \"size\": 10,\n  \"columnMapper\": {}\n}"
+            },
             "url": {
-              "raw": "http://localhost:3000/api/customers?page=1&size=10&status=ACTIVE&sortBy=name&sortDir=ASC",
+              "raw": "http://localhost:3000/api/customers/search",
               "protocol": "http",
               "host": ["localhost"],
               "port": "3000",
-              "path": ["api", "customers"],
-              "query": [
-                {"key": "page", "value": "1"},
-                {"key": "size", "value": "10"},
-                {"key": "status", "value": "ACTIVE"},
-                {"key": "sortBy", "value": "name"},
-                {"key": "sortDir", "value": "ASC"}
-              ]
+              "path": ["api", "customers", "search"]
             }
           },
           "response": []
@@ -132,23 +134,23 @@
         {
           "name": "List Products",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"selectColumns\": [\"id\", \"name\", \"description\", \"price\", \"status\", \"created_at\"],\n  \"whereParams\": [\n    {\"key\": \"status\", \"operation\": \"EQ\", \"value\": \"ACTIVE\"},\n    {\"key\": \"price\", \"operation\": \"GTE\", \"value\": 50},\n    {\"key\": \"price\", \"operation\": \"LTE\", \"value\": 500}\n  ],\n  \"textSearchParams\": [],\n  \"sortBy\": [{\"key\": \"price\", \"direction\": \"DESC\"}],\n  \"page\": 1,\n  \"size\": 10,\n  \"columnMapper\": {}\n}"
+            },
             "url": {
-              "raw": "http://localhost:3000/api/products?page=1&size=10&status=ACTIVE&minPrice=50&maxPrice=500&sortBy=price&sortDir=DESC",
+              "raw": "http://localhost:3000/api/products/search",
               "protocol": "http",
               "host": ["localhost"],
               "port": "3000",
-              "path": ["api", "products"],
-              "query": [
-                {"key": "page", "value": "1"},
-                {"key": "size", "value": "10"},
-                {"key": "status", "value": "ACTIVE"},
-                {"key": "minPrice", "value": "50"},
-                {"key": "maxPrice", "value": "500"},
-                {"key": "sortBy", "value": "price"},
-                {"key": "sortDir", "value": "DESC"}
-              ]
+              "path": ["api", "products", "search"]
             }
           },
           "response": []
@@ -239,21 +241,23 @@
         {
           "name": "List Orders",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"selectColumns\": [\n    \"orderId\",\n    \"orderDate\",\n    \"orderStatus\",\n    \"totalAmount\",\n    \"customerId\",\n    \"customerName\",\n    \"customerEmail\"\n  ],\n  \"whereParams\": [\n    {\"key\": \"o.status\", \"operation\": \"EQ\", \"value\": \"SHIPPED\"}\n  ],\n  \"textSearchParams\": [],\n  \"sortBy\": [{\"key\": \"o.order_date\", \"direction\": \"DESC\"}],\n  \"page\": 1,\n  \"size\": 10,\n  \"columnMapper\": {\n    \"orderId\": \"o.id\",\n    \"orderDate\": \"o.order_date\",\n    \"orderStatus\": \"o.status\",\n    \"totalAmount\": \"o.total_amount\",\n    \"customerId\": \"c.id\",\n    \"customerName\": \"c.name\",\n    \"customerEmail\": \"c.email\"\n  }\n}"
+            },
             "url": {
-              "raw": "http://localhost:3000/api/orders?page=1&size=10&status=SHIPPED&sortBy=orderDate&sortDir=DESC",
+              "raw": "http://localhost:3000/api/orders/search",
               "protocol": "http",
               "host": ["localhost"],
               "port": "3000",
-              "path": ["api", "orders"],
-              "query": [
-                {"key": "page", "value": "1"},
-                {"key": "size", "value": "10"},
-                {"key": "status", "value": "SHIPPED"},
-                {"key": "sortBy", "value": "orderDate"},
-                {"key": "sortDir", "value": "DESC"}
-              ]
+              "path": ["api", "orders", "search"]
             }
           },
           "response": []

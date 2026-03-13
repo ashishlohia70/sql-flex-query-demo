@@ -1,12 +1,13 @@
 const { buildQueries, dialectHelpers } = require('sql-flex-query');
-const db = require('../config/database');
+const db = require('../config/databaseHelper');
+const config = require('../config/appConfig');
 
 class CustomerService {
   constructor() {
-    this.dialect = 'sqlite';
+    this.dialect = config.dialect;
   }
 
-  async getCustomers(filters = {}, page = 1, size = 10) {
+  async getCustomers(queryConfig = {}) {
     const BASE = `
       SELECT /*SELECT_COLUMNS*/
       FROM customers
@@ -15,33 +16,31 @@ class CustomerService {
       /*LIMIT_CLAUSE*/
     `;
 
-    const whereParams = [];
-    
-    // Build WHERE conditions from filters
-    if (filters.status) {
-      whereParams.push({ key: 'status', operation: 'EQ', value: filters.status });
-    }
-    if (filters.name) {
-      whereParams.push({ key: 'name', operation: 'LIKE', value: `%${filters.name}%` });
-    }
-    if (filters.email) {
-      whereParams.push({ key: 'email', operation: 'LIKE', value: `%${filters.email}%` });
-    }
+    // Use client-provided configuration with defaults
+    const {
+      selectColumns = ['id', 'name', 'email', 'status', 'created_at'],
+      whereParams = [],
+      textSearchParams = [],
+      sortBy = [{ key: 'id', direction: 'DESC' }],
+      page = 1,
+      size = 10,
+      columnMapper = {}
+    } = queryConfig;
 
     const result = buildQueries({
       baseQueryTemplate: BASE,
       whereParams,
-      textSearchParams: [],
-      sortBy: filters.sortBy ? [{ key: filters.sortBy, direction: filters.sortDir || 'ASC' }] : [{ key: 'id', direction: 'DESC' }],
+      textSearchParams,
+      sortBy,
       page: parseInt(page),
       size: parseInt(size),
-      columnMapper: {},
-      selectColumns: ['id', 'name', 'email', 'status', 'created_at'],
+      columnMapper,
+      selectColumns,
       dialect: this.dialect
     });
 
-    const {rows} = await db.getDb().all(result.searchQuery, result.params);
-    const [countResult] = await db.getDb().get(result.countQuery, result.params);
+    const rows = await db.all(result.searchQuery, result.params);
+    const countResult = await db.get(result.countQuery, result.params);
     
     return {
       data: rows,
@@ -59,7 +58,7 @@ class CustomerService {
       WHERE id = ?
     `;
     
-    return await db.getDb().get(query, [id]);
+    return await db.get(query, [id]);
   }
 
   async createCustomer(customerData) {
@@ -70,15 +69,7 @@ class CustomerService {
     
     const query = `INSERT INTO customers (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
     
-    return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ id: this.lastID, ...customerData });
-        }
-      });
-    });
+    await db.run(query, params);
   }
 
   async updateCustomer(id, customerData) {
@@ -97,7 +88,7 @@ class CustomerService {
     const query = `UPDATE customers SET ${setClause}${clause}`;
     
     return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
+      db.run(query, params, function(err) {
         if (err) {
           reject(err);
         } else {
@@ -120,7 +111,7 @@ class CustomerService {
     const query = `DELETE FROM customers${clause}`;
     
     return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
+      db.run(query, params, function(err) {
         if (err) {
           reject(err);
         } else {

@@ -3,7 +3,7 @@ const path = require('path');
 
 class Database {
   constructor() {
-    this.db = new sqlite3.Database(':memory:');
+    this.db = new sqlite3.Database('./my_database.db');
     this.initialized = false;
   }
 

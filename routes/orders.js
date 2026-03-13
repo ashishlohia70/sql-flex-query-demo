@@ -2,21 +2,11 @@ const express = require('express');
 const router = express.Router();
 const orderService = require('../services/orderService');
 
-// GET /api/orders - List all orders with pagination and filtering
-router.get('/', async (req, res, next) => {
+// POST /api/orders/search - List all orders with flexible query configuration
+router.post('/search', async (req, res, next) => {
   try {
-    const { page = 1, size = 10, status, customerId, minDate, maxDate, sortBy, sortDir } = req.query;
-    
-    const filters = { 
-      status, 
-      customerId, 
-      minDate, 
-      maxDate, 
-      sortBy, 
-      sortDir 
-    };
-    
-    const result = await orderService.getOrders(filters, page, size);
+    const queryConfig = req.body;
+    const result = await orderService.getOrders(queryConfig);
     
     res.json({
       success: true,

@@ -1,12 +1,13 @@
 const { buildQueries, dialectHelpers } = require('sql-flex-query');
-const db = require('../config/database');
+const db = require('../config/databaseHelper');
+const config = require('../config/appConfig');
 
 class ProductService {
   constructor() {
-    this.dialect = 'sqlite';
+    this.dialect = config.dialect;
   }
 
-  async getProducts(filters = {}, page = 1, size = 10) {
+  async getProducts(queryConfig = {}) {
     const BASE = `
       SELECT /*SELECT_COLUMNS*/
       FROM products
@@ -15,36 +16,31 @@ class ProductService {
       /*LIMIT_CLAUSE*/
     `;
 
-    const whereParams = [];
-    
-    // Build WHERE conditions from filters
-    if (filters.status) {
-      whereParams.push({ key: 'status', operation: 'EQ', value: filters.status });
-    }
-    if (filters.name) {
-      whereParams.push({ key: 'name', operation: 'LIKE', value: `%${filters.name}%` });
-    }
-    if (filters.minPrice) {
-      whereParams.push({ key: 'price', operation: 'GTE', value: parseFloat(filters.minPrice) });
-    }
-    if (filters.maxPrice) {
-      whereParams.push({ key: 'price', operation: 'LTE', value: parseFloat(filters.maxPrice) });
-    }
+    // Use client-provided configuration with defaults
+    const {
+      selectColumns = ['id', 'name', 'description', 'price', 'status', 'created_at'],
+      whereParams = [],
+      textSearchParams = [],
+      sortBy = [{ key: 'id', direction: 'DESC' }],
+      page = 1,
+      size = 10,
+      columnMapper = {}
+    } = queryConfig;
 
     const result = buildQueries({
       baseQueryTemplate: BASE,
       whereParams,
-      textSearchParams: [],
-      sortBy: filters.sortBy ? [{ key: filters.sortBy, direction: filters.sortDir || 'ASC' }] : [{ key: 'id', direction: 'DESC' }],
+      textSearchParams,
+      sortBy,
       page: parseInt(page),
       size: parseInt(size),
-      columnMapper: {},
-      selectColumns: ['id', 'name', 'description', 'price', 'status', 'created_at'],
+      columnMapper,
+      selectColumns,
       dialect: this.dialect
     });
 
-    const [rows] = await db.getDb().all(result.searchQuery, result.params);
-    const [countResult] = await db.getDb().get(result.countQuery, result.params);
+    const rows = await db.all(result.searchQuery, result.params);
+    const countResult = await db.get(result.countQuery, result.params);
     
     return {
       data: rows,
@@ -62,7 +58,7 @@ class ProductService {
       WHERE id = ?
     `;
     
-    return await db.getDb().get(query, [id]);
+    return await db.get(query, [id]);
   }
 
   async createProduct(productData) {
@@ -74,7 +70,7 @@ class ProductService {
     const query = `INSERT INTO products (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
     
     return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
+      db.run(query, params, function(err) {
         if (err) {
           reject(err);
         } else {
@@ -100,7 +96,7 @@ class ProductService {
     const query = `UPDATE products SET ${setClause}${clause}`;
     
     return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
+      db.run(query, params, function(err) {
         if (err) {
           reject(err);
         } else {
@@ -123,7 +119,7 @@ class ProductService {
     const query = `DELETE FROM products${clause}`;
     
     return new Promise((resolve, reject) => {
-      db.getDb().run(query, params, function(err) {
+      db.run(query, params, function(err) {
         if (err) {
           reject(err);
         } else {

@@ -2,14 +2,11 @@ const express = require('express');
 const router = express.Router();
 const productService = require('../services/productService');
 
-// GET /api/products - List all products with pagination and filtering
-router.get('/', async (req, res, next) => {
+// POST /api/products/search - List all products with flexible query configuration
+router.post('/search', async (req, res, next) => {
   try {
-    const { page = 1, size = 10, status, name, minPrice, maxPrice, sortBy, sortDir } = req.query;
-    
-    const filters = { status, name, minPrice, maxPrice, sortBy, sortDir };
-    
-    const result = await productService.getProducts(filters, page, size);
+    const queryConfig = req.body;
+    const result = await productService.getProducts(queryConfig);
     
     res.json({
       success: true,
