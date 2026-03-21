@@ -9,6 +9,7 @@ class DatabaseHelper {
    */
   async all(query, params = []) {
     return new Promise((resolve, reject) => {
+      console.log(query, params);
       db.getDb().all(query, params, (err, rows) => {
         if (err) {
           reject(err);
@@ -45,6 +46,7 @@ class DatabaseHelper {
    */
   async run(query, params = []) {
     return new Promise((resolve, reject) => {
+      console.log(query, params);
       db.getDb().run(query, params, function(err) {
         if (err) {
           reject(err);

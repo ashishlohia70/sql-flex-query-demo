@@ -18,13 +18,13 @@ class CustomerService {
 
     // Use client-provided configuration with defaults
     const {
-      selectColumns = ['id', 'name', 'email', 'status', 'created_at'],
+      selectColumns = ["id", "name", "email", "status", "created_at"],
       whereParams = [],
       textSearchParams = [],
-      sortBy = [{ key: 'id', direction: 'DESC' }],
+      sortBy = [{ key: "id", direction: "DESC" }],
       page = 1,
       size = 10,
-      columnMapper = {}
+      columnMapper = {},
     } = queryConfig;
 
     const result = buildQueries({
@@ -36,18 +36,18 @@ class CustomerService {
       size: parseInt(size),
       columnMapper,
       selectColumns,
-      dialect: this.dialect
+      dialect: this.dialect,
     });
 
     const rows = await db.all(result.searchQuery, result.params);
     const countResult = await db.get(result.countQuery, result.params);
-    
+
     return {
       data: rows,
       total: countResult.count,
       page: parseInt(page),
       size: parseInt(size),
-      totalPages: Math.ceil(countResult.count / size)
+      totalPages: Math.ceil(countResult.count / size),
     };
   }
 
@@ -57,68 +57,53 @@ class CustomerService {
       FROM customers
       WHERE id = ?
     `;
-    
+
     return await db.get(query, [id]);
   }
 
   async createCustomer(customerData) {
     const h = dialectHelpers(this.dialect);
-    const columnMapper = { name: 'name', email: 'email', status: 'status' };
-    
-    const { columns, placeholders, params } = h.buildInsertValues(customerData, columnMapper);
-    
+    const columnMapper = { name: "name", email: "email", status: "status" };
+
+    const { columns, placeholders, params } = h.buildInsertValues(
+      customerData,
+      columnMapper,
+    );
+
     const query = `INSERT INTO customers (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
-    
+
     await db.run(query, params);
   }
 
   async updateCustomer(id, customerData) {
     const h = dialectHelpers(this.dialect);
-    const columnMapper = { name: 'name', email: 'email', status: 'status' };
-    
+    const columnMapper = { name: "name", email: "email", status: "status" };
+
     const { setClause, params } = h.buildSetClause(customerData, columnMapper);
-    
+
     const { clause } = h.buildWhereClause(
-      [{ key: 'id', operation: 'EQ', value: id }],
+      [{ key: "id", operation: "EQ", value: id }],
       [],
       columnMapper,
-      params
+      params,
     );
-    
+
     const query = `UPDATE customers SET ${setClause}${clause}`;
-    
-    return new Promise((resolve, reject) => {
-      db.run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ id, ...customerData });
-        }
-      });
-    });
+
+    return await db.run(query, params);
   }
 
   async deleteCustomer(id) {
     const h = dialectHelpers(this.dialect);
-    const columnMapper = { id: 'id' };
-    
+    const columnMapper = { id: "id" };
+
     const { clause, params } = h.buildWhereClause(
-      [{ key: 'id', operation: 'EQ', value: id }],
+      [{ key: "id", operation: "EQ", value: id }],
       [],
-      columnMapper
+      columnMapper,
     );
-    
     const query = `DELETE FROM customers${clause}`;
-    
-    return new Promise((resolve, reject) => {
-      db.run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ deleted: this.changes });
-        }
-      });
-    });
+    return await db.run(query, params);
   }
 }
 
