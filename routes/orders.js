@@ -62,12 +62,12 @@ router.post('/', async (req, res, next) => {
       status: status || 'PENDING', 
       total_amount: parseFloat(total_amount) || 0 
     });
-    
+    const orderId = order.lastID;
     // Add order items if provided
     if (items && Array.isArray(items)) {
       for (const item of items) {
         await orderService.addOrderItem(
-          order.orderId,
+          orderId,
           item.product_id,
           item.quantity,
           item.unit_price
@@ -76,7 +76,7 @@ router.post('/', async (req, res, next) => {
     }
     
     // Fetch the complete order with items
-    const completeOrder = await orderService.getOrderWithItems(order.orderId);
+    const completeOrder = await orderService.getOrderWithItems(orderId);
     
     res.status(201).json({
       success: true,

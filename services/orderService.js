@@ -156,15 +156,7 @@ class OrderService {
     
     const query = `INSERT INTO orders (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
     
-    return new Promise((resolve, reject) => {
-      db.run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ orderId: this.lastID, ...orderData });
-        }
-      });
-    });
+    return await db.run(query, params);
   }
 
   async updateOrder(id, orderData) {
@@ -182,15 +174,7 @@ class OrderService {
     
     const query = `UPDATE orders SET ${setClause}${clause}`;
     
-    return new Promise((resolve, reject) => {
-      db.run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ orderId: id, ...orderData });
-        }
-      });
-    });
+    return await db.run(query, params);
   }
 
   async deleteOrder(id) {
@@ -205,15 +189,7 @@ class OrderService {
     
     const query = `DELETE FROM orders${clause}`;
     
-    return new Promise((resolve, reject) => {
-      db.run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ deleted: this.changes });
-        }
-      });
-    });
+    return await db.run(query, params);
   }
 
   async addOrderItem(orderId, productId, quantity, unitPrice) {
@@ -236,15 +212,7 @@ class OrderService {
     
     const query = `INSERT INTO order_items (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
     
-    return new Promise((resolve, reject) => {
-      db.run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ orderItemId: this.lastID, orderId, productId, quantity, unitPrice });
-        }
-      });
-    });
+    return await db.run(query, params);
   }
 
   async getOrderItems(orderId) {

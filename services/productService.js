@@ -69,15 +69,7 @@ class ProductService {
     
     const query = `INSERT INTO products (${columns.join(", ")}) VALUES (${placeholders.join(", ")})`;
     
-    return new Promise((resolve, reject) => {
-      db.run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ id: this.lastID, ...productData });
-        }
-      });
-    });
+    return await db.run(query, params);
   }
 
   async updateProduct(id, productData) {
@@ -95,15 +87,7 @@ class ProductService {
     
     const query = `UPDATE products SET ${setClause}${clause}`;
     
-    return new Promise((resolve, reject) => {
-      db.run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ id, ...productData });
-        }
-      });
-    });
+    return await db.run(query, params);
   }
 
   async deleteProduct(id) {
@@ -118,15 +102,7 @@ class ProductService {
     
     const query = `DELETE FROM products${clause}`;
     
-    return new Promise((resolve, reject) => {
-      db.run(query, params, function(err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ deleted: this.changes });
-        }
-      });
-    });
+    return await db.run(query, params);
   }
 }
 
