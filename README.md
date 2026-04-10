@@ -32,7 +32,7 @@ A production-ready REST API demo showcasing the powerful **sql-flex-query** libr
 | Node.js | 18+ | Runtime |
 | Express | 5.2.1 | Web Framework |
 | SQLite3 | 6.0.1 | Database |
-| sql-flex-query | 1.1.1 | Query Builder |
+| sql-flex-query | 1.1.3 | Query Builder |
 | CORS | 2.8.6 | Cross-Origin Support |
 
 ## Prerequisites
